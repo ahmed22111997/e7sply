@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SpendWise</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.js"></script>
+<style>
+:root{--bg:#F3F4F8;--card:#fff;--tx:#14213D;--mut:#6B7385;--bd:#E4E7EF;--navy:#0E1B3D;--ac:#E0982B;--ok:#1E9E73;--warn:#E0982B;--bad:#D64550;--r:16px}
+.dark{--bg:#0B1226;--card:#141F3A;--tx:#EAEEF8;--mut:#97A1BA;--bd:#233156}
+*{box-sizing:border-box}body{margin:0;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg);color:var(--tx)}
+button,input,select,textarea{font:inherit;color:inherit}
+.app{display:flex;min-height:100vh}
+aside{width:228px;background:var(--navy);color:#C9D2EA;padding:22px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:4px}
+aside h1{color:#fff;font-size:21px;margin:0 8px 18px;font-weight:700}aside h1 b{color:var(--ac)}
+.nav{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:0;background:none;cursor:pointer;color:inherit;text-align:start;transition:background .2s}
+.nav:hover{background:rgba(255,255,255,.07)}.nav.on{background:var(--ac);color:#1B1403;font-weight:600}
+.sync{margin-top:auto;font-size:12px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.07)}
+main{flex:1;padding:26px;max-width:1180px;margin:auto;min-width:0}
+h2{margin:0 0 16px;font-size:24px}h3{margin:0 0 12px;font-size:15px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:18px;box-shadow:0 1px 3px rgba(14,27,61,.06)}
+.grid{display:grid;gap:14px}.kpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:14px}
+.two{grid-template-columns:repeat(auto-fit,minmax(320px,1fr));margin-bottom:14px}
+.kpi small{color:var(--mut);display:block;margin-bottom:6px}.kpi b{font-size:22px}
+.kpi.hero{background:var(--navy);color:#fff;border:0}.kpi.hero small{color:#9FB0D8}.kpi.hero b{font-size:30px}
+input,select,textarea{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:9px 11px;width:100%}
+textarea{min-height:76px;resize:vertical}
+.btn{background:var(--ac);color:#1B1403;border:0;border-radius:10px;padding:9px 16px;font-weight:600;cursor:pointer;transition:transform .15s}
+.btn:active{transform:scale(.97)}.btn.sec{background:transparent;color:var(--tx);border:1px solid var(--bd)}.btn.red{background:var(--bad);color:#fff}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.row>*{flex:1;min-width:110px}.row>.btn{flex:0 0 auto}
+.bar{height:8px;border-radius:8px;background:var(--bd);overflow:hidden}.bar i{display:block;height:100%;background:var(--ok);transition:width .5s}
+.bar i.w{background:var(--warn)}.bar i.b{background:var(--bad)}
+table{width:100%;border-collapse:collapse}td,th{padding:10px 8px;border-bottom:1px solid var(--bd);text-align:start;font-size:14px}th{color:var(--mut);font-weight:500}
+.tag{font-size:12px;padding:2px 9px;border-radius:20px;background:var(--bg);color:var(--mut)}
+.alert{padding:10px 14px;border-radius:12px;margin-bottom:10px;font-size:14px}.alert.w{background:#FCF1DC;color:#6B4605}.alert.b{background:#FBE3E5;color:#7A1520}
+.modal{position:fixed;inset:0;background:rgba(5,10,25,.55);display:grid;place-items:center;padding:16px;z-index:9}
+.modal .card{width:min(520px,100%);max-height:92vh;overflow:auto;animation:pop .2s}
+@keyframes pop{from{transform:scale(.96);opacity:0}}
+.empty{color:var(--mut);text-align:center;padding:28px}.mut{color:var(--mut)}
+@media(max-width:820px){.app{flex-direction:column}aside{position:fixed;bottom:0;top:auto;height:auto;width:100%;flex-direction:row;padding:6px;z-index:5;overflow-x:auto}
+aside h1,.sync{display:none}.nav{flex-direction:column;gap:2px;font-size:11px;padding:7px 10px}main{padding:16px 14px 90px}}
+@media print{aside,.noprint{display:none!important}.app{display:block}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useMemo,useCallback,createContext,useContext}=React;
+const Ctx=createContext();
+const DEFCATS=['Groceries','Fish & Seafood','Vegetables & Fruits','Restaurants & Takeaway','Transportation','Housing','Utilities','Shopping','Healthcare','Entertainment','Other'];
+const CATAR={'Groceries':'بقالة','Fish & Seafood':'أسماك ومأكولات بحرية','Vegetables & Fruits':'خضار وفواكه','Restaurants & Takeaway':'مطاعم وطلبات خارجية','Transportation':'مواصلات','Housing':'سكن','Utilities':'فواتير وخدمات','Shopping':'تسوق','Healthcare':'صحة','Entertainment':'ترفيه','Other':'أخرى'};
+const PAY=['Cash','Card','Bank transfer','Other'];
+const I18N={
+en:{dashboard:'Dashboard',transactions:'Transactions',budget:'Budget',reports:'Reports',settings:'Settings',spent:'Spent this month',monthlyBudget:'Monthly budget',remaining:'Remaining',savings:'Savings',avgDay:'Average per day',topCat:'Top category',count:'Transactions',last6:'Last 6 months',byCat:'By category',daily:'Daily spending',prev:'Previous month',cur:'This month',quick:'Add purchases',hint:'Type naturally: “rice 15, eggs 8, fish 12 AED” or “2 كيلو طماطم 10 درهم”',read:'Read entries',saveAll:'Save all',item:'Item',amount:'Amount',qty:'Qty',category:'Category',date:'Date',note:'Note',payment:'Payment',income:'Income',expense:'Expense',search:'Search name, note or category',all:'All',edit:'Edit',del:'Delete',confirmDel:'Delete this transaction?',cancel:'Cancel',save:'Save',empty:'Nothing here yet.',safeDay:'Safe to spend per day',missing:'Amount missing – enter it or remove the row',today:'Today',week:'Last 7 days',month:'This month',from:'From',to:'To',min:'Min',max:'Max',setBudget:'Set monthly budget',catBudgets:'Category budgets',used:'used',w75:'reached 75% of budget',w90:'reached 90% of budget',w100:'went over budget',csv:'Export CSV',pdf:'Print / save PDF',highDay:'Highest spending day',topItems:'Most purchased items',vsBudget:'Budget vs actual',history:'Monthly history',autoReport:'Generate monthly report automatically',language:'Language',dark:'Dark mode',addCat:'Add category',exportAll:'Export backup (JSON)',importAll:'Import backup',syncNow:'Sync now',synced:'Synced',syncing:'Syncing…',pending:'pending',offline:'Offline – saved on this device',local:'Local only (not in Apps Script)',error:'Sync failed – will retry',nothingRead:'Nothing recognised. Try “item amount”.',recurring:'Repeat monthly',tx:'transactions'},
+ar:{dashboard:'لوحة التحكم',transactions:'المعاملات',budget:'الميزانية',reports:'التقارير',settings:'الإعدادات',spent:'المصروف هذا الشهر',monthlyBudget:'الميزانية الشهرية',remaining:'المتبقي',savings:'المدخرات',avgDay:'المتوسط اليومي',topCat:'أعلى فئة',count:'عدد المعاملات',last6:'آخر 6 أشهر',byCat:'حسب الفئة',daily:'الإنفاق اليومي',prev:'الشهر السابق',cur:'هذا الشهر',quick:'إضافة مشتريات',hint:'اكتب بشكل طبيعي: «رز 15، بيض 8، سمك 12 درهم»',read:'قراءة المدخلات',saveAll:'حفظ الكل',item:'الصنف',amount:'المبلغ',qty:'الكمية',category:'الفئة',date:'التاريخ',note:'ملاحظة',payment:'طريقة الدفع',income:'دخل',expense:'مصروف',search:'ابحث بالاسم أو الملاحظة أو الفئة',all:'الكل',edit:'تعديل',del:'حذف',confirmDel:'حذف هذه المعاملة؟',cancel:'إلغاء',save:'حفظ',empty:'لا يوجد شيء بعد.',safeDay:'المبلغ الآمن للصرف يوميًا',missing:'المبلغ ناقص – أدخله أو احذف السطر',today:'اليوم',week:'آخر 7 أيام',month:'هذا الشهر',from:'من',to:'إلى',min:'الأدنى',max:'الأعلى',setBudget:'حدد الميزانية الشهرية',catBudgets:'ميزانيات الفئات',used:'مستخدم',w75:'وصلت إلى 75% من الميزانية',w90:'وصلت إلى 90% من الميزانية',w100:'تجاوزت الميزانية',csv:'تصدير CSV',pdf:'طباعة / حفظ PDF',highDay:'أعلى يوم إنفاقًا',topItems:'الأكثر شراءً',vsBudget:'الميزانية مقابل الفعلي',history:'السجل الشهري',autoReport:'إنشاء التقرير الشهري تلقائيًا',language:'اللغة',dark:'الوضع الداكن',addCat:'إضافة فئة',exportAll:'تصدير نسخة احتياطية (JSON)',importAll:'استيراد نسخة احتياطية',syncNow:'مزامنة الآن',synced:'تمت المزامنة',syncing:'جارٍ المزامنة…',pending:'معلّق',offline:'غير متصل – محفوظ على الجهاز',local:'محلي فقط (خارج Apps Script)',error:'فشلت المزامنة – ستُعاد المحاولة',nothingRead:'لم يتم التعرف على شيء. جرّب «صنف مبلغ».',recurring:'تكرار شهري',tx:'معاملة'}};
+
+/* ---------- storage (IndexedDB) ---------- */
+const DB=(()=>{let p;const open=()=>p||(p=new Promise((res,rej)=>{const r=indexedDB.open('spendwise',1);r.onupgradeneeded=()=>{r.result.createObjectStore('tx',{keyPath:'id'});r.result.createObjectStore('kv',{keyPath:'k'})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}));
+const run=async(s,m,f)=>{const d=await open();return new Promise((res,rej)=>{const t=d.transaction(s,m);const q=f(t.objectStore(s));t.oncomplete=()=>res(q&&q.result);t.onerror=()=>rej(t.error)})};
+return{all:()=>run('tx','readonly',s=>s.getAll()),putMany:a=>run('tx','readwrite',s=>{a.forEach(x=>s.put(x))}),get:k=>run('kv','readonly',s=>s.get(k)).then(r=>r&&r.v),set:(k,v)=>run('kv','readwrite',s=>s.put({k,v}))}})();
+/* === Netlify mode: paste your Apps Script Web App URL and key here === */
+const API_URL='/.netlify/functions/api';   // Netlify proxy (keeps the key secret). Use the /exec URL directly only without Netlify Functions.
+const API_KEY='';   // leave empty when using the Netlify proxy
+const GAS=typeof google!=='undefined'&&google.script&&google.script.run;
+const getPw=()=>{try{return localStorage.getItem('sw_pw')||''}catch(e){return ''}};
+const callApi=(fn,a)=>fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({fn,args:a,key:API_KEY,pw:getPw()})}).then(async r=>{const t=await r.text();try{return JSON.parse(t)}catch(e){return{error:'HTTP '+r.status+' '+(t.slice(0,80)||'empty response from function')}}});
+const gas=(fn,...a)=>GAS?new Promise((ok,no)=>GAS.withSuccessHandler(ok).withFailureHandler(no)[fn](...a)):
+ callApi(fn,a).then(async r=>{
+  if(r.error==='unauthorized'){const p=prompt('Password / كلمة المرور');if(p){try{localStorage.setItem('sw_pw',p)}catch(e){}r=await callApi(fn,a)}}
+  if(r.error)throw new Error(r.error);return r.ok});
+
+/* ---------- helpers ---------- */
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const iso=d=>{const x=new Date(d);return new Date(x.getTime()-x.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+const today=()=>iso(new Date());
+const addDays=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)};
+const shiftMonth=(m,n)=>{const [y,mo]=m.split('-').map(Number);const d=new Date(y,mo-1+n,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
+const dim=m=>{const [y,mo]=m.split('-').map(Number);return new Date(y,mo,0).getDate()};
+const sum=a=>a.reduce((s,x)=>s+x.amount,0);
+
+/* ---------- smart entry parser ---------- */
+const AR='٠١٢٣٤٥٦٧٨٩';
+const norm=s=>s.replace(/[٠-٩]/g,d=>AR.indexOf(d)).replace(/٫/g,'.').replace(/[،؛]/g,',');
+const CURW=/^(aed|dh|dhs|dirham|dirhams|د\.?إ|درهم|دراهم)$/i;
+const UNITW=/^(kg|kgs|g|gm|l|ltr|pcs|pc|x|كيلو|كغ|كجم|جرام|غرام|لتر|حبة|حبات|قطعة|علبة)$/i;
+const FILL=new Set(['bought','buy','paid','spent','for','and','at','on','the','a','of','today','yesterday','اشتريت','دفعت','صرفت','ب','بـ','في','اليوم','أمس','امس','و']);
+const KEYS=[['Fish & Seafood',/fish|shrimp|salmon|tuna|prawn|سمك|روبيان|جمبري|سلمون|سالمون|هامور/i],['Vegetables & Fruits',/tomato|potato|onion|apple|banana|fruit|veg|cucumber|طماطم|بطاطس|بصل|تفاح|موز|خضار|فواكه|خيار|برتقال/i],['Groceries',/rice|riz|egg|milk|bread|sugar|flour|oil|chicken|meat|cheese|رز|أرز|ارز|بيض|حليب|خبز|سكر|دقيق|زيت|دجاج|لحم|جبن/i],['Restaurants & Takeaway',/restaurant|cafe|coffee|pizza|burger|lunch|dinner|مطعم|قهوة|كافيه|بيتزا|برجر|غداء|عشاء/i],['Transportation',/taxi|uber|careem|fuel|petrol|metro|salik|parking|bus|تاكسي|بنزين|مترو|سالك|موقف|باص/i],['Housing',/rent|إيجار|ايجار/i],['Utilities',/dewa|electric|water|internet|etisalat|phone|كهرباء|ماء|مياه|انترنت|إنترنت|ديوا|فاتورة/i],['Healthcare',/pharmacy|doctor|medicine|clinic|صيدلية|دواء|طبيب|عيادة/i],['Entertainment',/cinema|netflix|game|movie|سينما|نتفلكس|لعبة|فيلم/i],['Shopping',/clothes|shoes|shirt|bag|ملابس|حذاء|قميص|شنطة/i]];
+const guessCat=(name,cats)=>{const c=cats.find(x=>name.toLowerCase().includes(x.n.toLowerCase())&&!DEFCATS.includes(x.n));if(c)return c.n;const k=KEYS.find(([,r])=>r.test(name));return k?k[0]:'Other'};
+function parse(text,cats){
+  const t=norm(text);const date=/yesterday|أمس|امس/i.test(t)?addDays(-1):today();
+  return t.split(/[\n,;]+|\.(?!\d)|\s+and\s+|\s+و\s+/i).map(s=>s.trim()).filter(Boolean).map(seg=>{
+    const tk=seg.replace(/(\d)([A-Za-z\u0600-\u06FF])/g,'$1 $2').replace(/([A-Za-z\u0600-\u06FF])(\d)/g,'$1 $2').split(/\s+/);
+    const nums=tk.map((w,i)=>/^\d+(\.\d+)?$/.test(w)?i:-1).filter(i=>i>=0);
+    if(!nums.length&&!tk.some(w=>!FILL.has(w.toLowerCase())&&!CURW.test(w)))return null;
+    let ai=nums.find(i=>CURW.test(tk[i+1]||''));if(ai===undefined&&nums.length)ai=nums[nums.length-1];
+    let qi=nums.find(i=>i!==ai&&(i===0||UNITW.test(tk[i+1]||'')));
+    const qty=qi===undefined?'':tk[qi]+(UNITW.test(tk[qi+1]||'')?' '+tk[qi+1]:'');
+    const name=tk.filter((w,i)=>i!==ai&&i!==qi&&!CURW.test(w)&&!UNITW.test(w)&&!FILL.has(w.toLowerCase())&&!/^\d+(\.\d+)?$/.test(w)).join(' ').trim();
+    return{key:uid(),name:name||'—',amount:ai===undefined?'':tk[ai],qty,cat:guessCat(name,cats),date};
+  }).filter(Boolean);
+}
+
+/* ---------- small components ---------- */
+function ChartBox({type,data,options}){const r=useRef(),c=useRef();
+  useEffect(()=>{c.current&&c.current.destroy();c.current=new Chart(r.current,{type,data,options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:type==='doughnut'||data.datasets.length>1,position:'bottom'}},...options}});return()=>c.current.destroy()},[JSON.stringify(data),type]);
+  return <div style={{height:240}}><canvas ref={r}/></div>}
+const Bar=({pct})=><div className="bar"><i className={pct>=100?'b':pct>=75?'w':''} style={{width:Math.min(100,pct)+'%'}}/></div>;
+
+function Modal({children,onClose}){return <div className="modal" onClick={onClose}><div className="card" onClick={e=>e.stopPropagation()}>{children}</div></div>}
+
+function TxForm({tx,onSave,onCancel}){const {t,st,cn}=useContext(Ctx);
+  const [f,setF]=useState({type:'expense',name:'',amount:'',qty:'',cat:'Other',date:today(),note:'',pay:'Cash',...tx});
+  const s=k=>e=>setF({...f,[k]:e.target.value});const bad=!(+f.amount>0)||!f.name.trim();
+  return <div className="grid">
+    <div className="row"><select value={f.type} onChange={s('type')}><option value="expense">{t('expense')}</option><option value="income">{t('income')}</option></select><input type="date" value={f.date} onChange={s('date')}/></div>
+    <input placeholder={t('item')} value={f.name} onChange={s('name')}/>
+    <div className="row"><input type="number" min="0" step="0.01" placeholder={t('amount')} value={f.amount} onChange={s('amount')}/><input placeholder={t('qty')} value={f.qty} onChange={s('qty')}/></div>
+    <div className="row"><select value={f.cat} onChange={s('cat')}>{st.cats.map(c=><option key={c.n} value={c.n}>{cn(c.n)}</option>)}</select><select value={f.pay} onChange={s('pay')}>{PAY.map(p=><option key={p}>{p}</option>)}</select></div>
+    <input placeholder={t('note')} value={f.note} onChange={s('note')}/>
+    <div className="row" style={{justifyContent:'flex-end'}}><button className="btn sec" onClick={onCancel}>{t('cancel')}</button><button className="btn" disabled={bad} style={{opacity:bad?.5:1}} onClick={()=>onSave({...f,amount:+f.amount,name:f.name.trim()})}>{t('save')}</button></div></div>}
+
+function QuickAdd(){const {t,st,cn,saveTx}=useContext(Ctx);
+  const [text,setText]=useState('');const [rows,setRows]=useState(null);const [type,setType]=useState('expense');
+  const read=()=>setRows(parse(text,st.cats));
+  const upd=(k,key,v)=>setRows(rows.map(r=>r.key===key?{...r,[k]:v}:r));
+  const ok=rows&&rows.filter(r=>+r.amount>0);const anyMissing=rows&&rows.some(r=>!(+r.amount>0));
+  const commit=()=>{saveTx(ok.map(r=>({id:uid(),type,name:r.name,amount:+r.amount,qty:r.qty,cat:r.cat,date:r.date,note:'',pay:'Cash'})));setRows(null);setText('')};
+  return <div className="card" style={{marginBottom:14}}><h3>{t('quick')}</h3>
+    <textarea value={text} onChange={e=>setText(e.target.value)} placeholder={t('hint')} dir="auto"/>
+    <div className="row" style={{marginTop:8}}><select style={{maxWidth:150}} value={type} onChange={e=>setType(e.target.value)}><option value="expense">{t('expense')}</option><option value="income">{t('income')}</option></select><button className="btn" onClick={read} disabled={!text.trim()}>{t('read')}</button></div>
+    {rows&&(rows.length===0?<p className="mut">{t('nothingRead')}</p>:<div style={{marginTop:12,overflowX:'auto'}}><table><tbody>{rows.map(r=><tr key={r.key}>
+      <td><input value={r.name} onChange={e=>upd('name',r.key,e.target.value)} dir="auto"/></td>
+      <td style={{width:90}}><input type="number" placeholder={t('amount')} value={r.amount} style={!(+r.amount>0)?{borderColor:'var(--bad)'}:{}} onChange={e=>upd('amount',r.key,e.target.value)}/></td>
+      <td style={{width:90}}><input value={r.qty} placeholder={t('qty')} onChange={e=>upd('qty',r.key,e.target.value)}/></td>
+      <td><select value={r.cat} onChange={e=>upd('cat',r.key,e.target.value)}>{st.cats.map(c=><option key={c.n} value={c.n}>{cn(c.n)}</option>)}</select></td>
+      <td style={{width:130}}><input type="date" value={r.date} onChange={e=>upd('date',r.key,e.target.value)}/></td>
+      <td><button className="btn sec" onClick={()=>setRows(rows.filter(x=>x.key!==r.key))}>✕</button></td></tr>)}</tbody></table>
+      {anyMissing&&<div className="alert w" style={{marginTop:10}}>{t('missing')}</div>}
+      <button className="btn" disabled={!ok.length} style={{opacity:ok.length?1:.5}} onClick={commit}>{t('saveAll')} ({ok.length})</button></div>)}
+  </div>}
+
+/* ---------- pages ---------- */
+function Dashboard(){const {t,live,st,money,month,cn,alerts}=useContext(Ctx);
+  const ex=live.filter(x=>x.type==='expense'),inM=(a,m)=>a.filter(x=>x.date.startsWith(m));
+  const cur=inM(ex,month),prev=inM(ex,shiftMonth(month,-1)),inc=sum(inM(live.filter(x=>x.type==='income'),month));
+  const total=sum(cur),D=dim(month),isNow=month===today().slice(0,7),elapsed=isNow?+today().slice(8):D,left=isNow?D-elapsed+1:0;
+  const byCat={};cur.forEach(x=>byCat[x.cat]=(byCat[x.cat]||0)+x.amount);const top=Object.entries(byCat).sort((a,b)=>b[1]-a[1])[0];
+  const rem=st.budget-total;
+  const days=a=>Array.from({length:D},(_,i)=>sum(a.filter(x=>+x.date.slice(8)===i+1)));
+  const months=Array.from({length:6},(_,i)=>shiftMonth(month,i-5));
+  const K=(l,v,c)=><div className={'card kpi '+(c||'')}><small>{l}</small><b>{v}</b></div>;
+  return <div><h2>{t('dashboard')}</h2><Alerts/><QuickAdd/>
+    <div className="grid kpis">{K(t('spent'),money(total),'hero')}{K(t('monthlyBudget'),st.budget?money(st.budget):'—')}{K(t('remaining'),st.budget?money(rem):'—')}{K(t('savings'),inc?money(inc-total):'—')}{K(t('avgDay'),money(total/Math.max(1,elapsed)))}{K(t('topCat'),top?cn(top[0]):'—')}{K(t('count'),cur.length)}{isNow&&st.budget>0&&K(t('safeDay'),money(Math.max(0,rem)/Math.max(1,left)))}</div>
+    {st.budget>0&&<div className="card" style={{marginBottom:14}}><div className="row" style={{justifyContent:'space-between'}}><span>{t('monthlyBudget')}</span><b style={{flex:0}}>{Math.round(total/st.budget*100)}%</b></div><Bar pct={total/st.budget*100}/></div>}
+    <div className="grid two"><div className="card"><h3>{t('last6')}</h3><ChartBox type="bar" data={{labels:months,datasets:[{data:months.map(m=>sum(inM(ex,m))),backgroundColor:'#E0982B',borderRadius:8}]}}/></div>
+    <div className="card"><h3>{t('byCat')}</h3>{top?<ChartBox type="doughnut" data={{labels:Object.keys(byCat).map(cn),datasets:[{data:Object.values(byCat),backgroundColor:['#0E1B3D','#E0982B','#1E9E73','#4F6BED','#D64550','#8E6BBF','#2BA3B8','#C9A66B','#6B7385','#E58BA6','#96C36A','#9AA7C7']}]}}/>:<div className="empty">{t('empty')}</div>}</div></div>
+    <div className="card"><h3>{t('daily')}</h3><ChartBox type="line" data={{labels:Array.from({length:D},(_,i)=>i+1),datasets:[{label:t('cur'),data:days(cur),borderColor:'#E0982B',backgroundColor:'#E0982B33',fill:true,tension:.3},{label:t('prev'),data:days(prev).slice(0,D),borderColor:'#9AA7C7',borderDash:[5,4],tension:.3,pointRadius:0}]}}/></div></div>}
+
+function Alerts(){const {t,alerts}=useContext(Ctx);return <div>{alerts.map((a,i)=><div key={i} className={'alert '+(a.p>=100?'b':'w')}>{a.n} — {t(a.p>=100?'w100':a.p>=90?'w90':'w75')}</div>)}</div>}
+
+function Transactions(){const {t,live,money,cn,saveTx,delTx}=useContext(Ctx);
+  const [f,setF]=useState({q:'',cat:'',from:'',to:'',min:'',max:''});const [ed,setEd]=useState(null);const s=k=>e=>setF({...f,[k]:e.target.value});
+  const list=live.filter(x=>{const q=f.q.toLowerCase();return(!q||(x.name+' '+x.note+' '+x.cat+' '+cn(x.cat)).toLowerCase().includes(q))&&(!f.cat||x.cat===f.cat)&&(!f.from||x.date>=f.from)&&(!f.to||x.date<=f.to)&&(!f.min||x.amount>=+f.min)&&(!f.max||x.amount<=+f.max)}).sort((a,b)=>b.date.localeCompare(a.date)||b.updatedAt-a.updatedAt);
+  const e=live.filter(x=>x.type==='expense'),T=sum(e.filter(x=>x.date===today())),W=sum(e.filter(x=>x.date>=addDays(-6))),M=sum(e.filter(x=>x.date.startsWith(today().slice(0,7))));
+  const {st}=useContext(Ctx);
+  return <div><h2>{t('transactions')}</h2>
+    <div className="grid kpis">{[[t('today'),T],[t('week'),W],[t('month'),M]].map(([l,v])=><div key={l} className="card kpi"><small>{l}</small><b>{money(v)}</b></div>)}</div>
+    <div className="card" style={{marginBottom:14}}><div className="row"><input placeholder={t('search')} value={f.q} onChange={s('q')} dir="auto" style={{flex:2}}/><select value={f.cat} onChange={s('cat')}><option value="">{t('all')}</option>{st.cats.map(c=><option key={c.n} value={c.n}>{cn(c.n)}</option>)}</select></div>
+    <div className="row" style={{marginTop:8}}><input type="date" title={t('from')} value={f.from} onChange={s('from')}/><input type="date" title={t('to')} value={f.to} onChange={s('to')}/><input type="number" placeholder={t('min')} value={f.min} onChange={s('min')}/><input type="number" placeholder={t('max')} value={f.max} onChange={s('max')}/></div></div>
+    <div className="card" style={{overflowX:'auto'}}>{list.length?<table><thead><tr><th>{t('date')}</th><th>{t('item')}</th><th>{t('category')}</th><th>{t('amount')}</th><th/></tr></thead><tbody>{list.map(x=><tr key={x.id}>
+      <td>{x.date}</td><td>{x.name}{x.qty&&<span className="mut"> · {x.qty}</span>}{x.note&&<div className="mut" style={{fontSize:12}}>{x.note}</div>}</td><td><span className="tag">{cn(x.cat)}</span></td>
+      <td style={{color:x.type==='income'?'var(--ok)':'inherit',fontWeight:600}}>{x.type==='income'?'+':''}{money(x.amount)}</td>
+      <td style={{whiteSpace:'nowrap'}}><button className="btn sec" onClick={()=>setEd(x)}>{t('edit')}</button> <button className="btn sec" onClick={()=>confirm(t('confirmDel'))&&delTx(x)}>✕</button></td></tr>)}</tbody></table>:<div className="empty">{t('empty')}</div>}</div>
+    {ed&&<Modal onClose={()=>setEd(null)}><TxForm tx={ed} onCancel={()=>setEd(null)} onSave={r=>{saveTx([r]);setEd(null)}}/></Modal>}</div>}
+
+function Budget(){const {t,live,st,setSt,money,month,cn}=useContext(Ctx);
+  const cur=live.filter(x=>x.type==='expense'&&x.date.startsWith(month)),total=sum(cur);
+  const by=c=>sum(cur.filter(x=>x.cat===c));
+  const setCat=(n,b)=>setSt({...st,cats:st.cats.map(c=>c.n===n?{...c,b:+b||0}:c)});
+  const left=month===today().slice(0,7)?dim(month)-(+today().slice(8))+1:0;
+  return <div><h2>{t('budget')}</h2><Alerts/>
+    <div className="card" style={{marginBottom:14}}><h3>{t('setBudget')}</h3><input type="number" min="0" value={st.budget||''} onChange={e=>setSt({...st,budget:+e.target.value||0})} placeholder="AED"/>
+      {st.budget>0&&<><div style={{margin:'12px 0 6px'}} className="row"><span>{money(total)} / {money(st.budget)}</span><b style={{flex:0}}>{Math.round(total/st.budget*100)}% {t('used')}</b></div><Bar pct={total/st.budget*100}/>
+      {left>0&&<p className="mut">{t('safeDay')}: <b style={{color:'var(--tx)'}}>{money(Math.max(0,st.budget-total)/left)}</b></p>}</>}</div>
+    <div className="card"><h3>{t('catBudgets')}</h3><div className="grid">{st.cats.map(c=><div key={c.n}><div className="row"><span style={{flex:2}}>{cn(c.n)}</span><input type="number" min="0" style={{maxWidth:130}} value={c.b||''} placeholder="AED" onChange={e=>setCat(c.n,e.target.value)}/></div>
+      {c.b>0&&<><div className="mut" style={{fontSize:12,margin:'4px 0'}}>{money(by(c.n))} / {money(c.b)} · {Math.round(by(c.n)/c.b*100)}%</div><Bar pct={by(c.n)/c.b*100}/></>}</div>)}</div></div></div>}
+
+function Reports(){const {t,live,st,money,month,setMonth,cn,lang}=useContext(Ctx);
+  const [auto,setAuto]=useState(false);
+  const inM=(m,ty)=>live.filter(x=>x.type===ty&&x.date.startsWith(m));
+  const ex=inM(month,'expense'),inc=sum(inM(month,'income')),total=sum(ex);
+  const perDay={};ex.forEach(x=>perDay[x.date]=(perDay[x.date]||0)+x.amount);const hd=Object.entries(perDay).sort((a,b)=>b[1]-a[1])[0];
+  const items={};ex.forEach(x=>{const k=x.name.toLowerCase();items[k]=(items[k]||0)+1});const topItems=Object.entries(items).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const byCat={};ex.forEach(x=>byCat[x.cat]=(byCat[x.cat]||0)+x.amount);
+  const hist=Array.from({length:6},(_,i)=>shiftMonth(month,i-5)).map(m=>[m,sum(inM(m,'expense'))]);
+  const csv=()=>{const rows=[['date','type','name','qty','amount','category','payment','note'],...live.filter(x=>x.date.startsWith(month)).map(x=>[x.date,x.type,x.name,x.qty,x.amount,x.cat,x.pay,x.note])];
+    const b=new Blob(['\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='spendwise-'+month+'.csv';a.click()};
+  const toggleAuto=async e=>{setAuto(e.target.checked);if(GAS||API_URL)try{await gas('setAutoReport',e.target.checked)}catch(x){alert(x.message)}};
+  return <div><div className="row noprint" style={{marginBottom:14}}><h2 style={{margin:0,flex:2}}>{t('reports')}</h2><input type="month" value={month} onChange={e=>e.target.value&&setMonth(e.target.value)}/><button className="btn sec" onClick={csv}>{t('csv')}</button><button className="btn" onClick={()=>window.print()}>{t('pdf')}</button></div>
+    <div className="grid kpis">{[[t('spent'),money(total)],[t('income'),money(inc)],[t('savings'),inc?money(inc-total):'—'],[t('avgDay'),money(total/dim(month))],[t('highDay'),hd?hd[0].slice(5)+' · '+money(hd[1]):'—'],[t('count'),ex.length]].map(([l,v])=><div className="card kpi" key={l}><small>{l}</small><b style={{fontSize:18}}>{v}</b></div>)}</div>
+    <div className="grid two"><div className="card"><h3>{t('byCat')}</h3>{Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([c,v])=><div key={c} style={{marginBottom:10}}><div className="row"><span>{cn(c)}</span><b style={{flex:0,whiteSpace:'nowrap'}}>{money(v)}</b></div><Bar pct={v/total*100}/></div>)}{!total&&<div className="empty">{t('empty')}</div>}</div>
+    <div className="card"><h3>{t('topItems')}</h3>{topItems.map(([n,c])=><div className="row" key={n}><span style={{flex:3}}>{n}</span><span className="mut" style={{flex:0}}>×{c}</span></div>)}{!topItems.length&&<div className="empty">{t('empty')}</div>}
+      <h3 style={{marginTop:18}}>{t('vsBudget')}</h3><div>{money(total)} / {st.budget?money(st.budget):'—'}</div>{st.budget>0&&<Bar pct={total/st.budget*100}/>}</div></div>
+    <div className="card"><h3>{t('history')}</h3><ChartBox type="bar" data={{labels:hist.map(h=>h[0]),datasets:[{data:hist.map(h=>h[1]),backgroundColor:'#0E1B3D',borderRadius:8}]}}/></div>
+    <label className="noprint row" style={{marginTop:14}}><input type="checkbox" style={{flex:0,width:18}} checked={auto} onChange={toggleAuto}/><span style={{flex:5}}>{t('autoReport')}</span></label></div>}
+
+function Settings(){const {t,st,setSt,tx,importTx,cn,doSync}=useContext(Ctx);const [nc,setNc]=useState('');
+  const exp=()=>{const b=new Blob([JSON.stringify({tx,st})],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='spendwise-backup.json';a.click()};
+  const imp=e=>{const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);importTx(d.tx||[],d.st)}catch(x){alert('Invalid file')}};e.target.files[0]&&r.readAsText(e.target.files[0])};
+  return <div><h2>{t('settings')}</h2><div className="grid two">
+    <div className="card grid"><h3>{t('language')}</h3><select value={st.lang} onChange={e=>setSt({...st,lang:e.target.value})}><option value="en">English</option><option value="ar">العربية</option></select>
+      <label className="row"><input type="checkbox" style={{flex:0,width:18}} checked={!!st.dark} onChange={e=>setSt({...st,dark:e.target.checked})}/><span style={{flex:5}}>{t('dark')}</span></label>
+      <button className="btn" onClick={doSync}>{t('syncNow')}</button><button className="btn sec" onClick={exp}>{t('exportAll')}</button><label className="btn sec" style={{textAlign:'center'}}>{t('importAll')}<input type="file" accept=".json" hidden onChange={imp}/></label></div>
+    <div className="card"><h3>{t('category')}</h3>{st.cats.map(c=><div key={c.n} className="row" style={{marginBottom:6}}><span style={{flex:3}}>{cn(c.n)}</span>{!DEFCATS.includes(c.n)&&<button className="btn sec" onClick={()=>setSt({...st,cats:st.cats.filter(x=>x.n!==c.n)})}>✕</button>}</div>)}
+      <div className="row"><input value={nc} onChange={e=>setNc(e.target.value)} placeholder={t('addCat')} dir="auto"/><button className="btn" disabled={!nc.trim()||st.cats.some(c=>c.n===nc.trim())} onClick={()=>{setSt({...st,cats:[...st.cats,{n:nc.trim(),b:0}]});setNc('')}}>+</button></div></div></div></div>}
+
+/* ---------- app shell ---------- */
+function App(){
+  const [tx,setTx]=useState([]);const [st,setStRaw]=useState({lang:'en',dark:false,budget:0,cats:DEFCATS.map(n=>({n,b:0})),updatedAt:0});
+  const [page,setPage]=useState('dashboard');const [month,setMonth]=useState(today().slice(0,7));const [ss,setSs]=useState('idle');const [errMsg,setErrMsg]=useState('');const [ready,setReady]=useState(false);
+  const lang=st.lang,t=k=>I18N[lang][k]||I18N.en[k]||k;
+  const money=n=>new Intl.NumberFormat(lang==='ar'?'ar-AE':'en-AE',{style:'currency',currency:'AED',maximumFractionDigits:2}).format(n||0);
+  const cn=c=>lang==='ar'&&CATAR[c]||c;
+  const live=useMemo(()=>tx.filter(x=>!x.deleted),[tx]);
+  useEffect(()=>{document.documentElement.dir=lang==='ar'?'rtl':'ltr';document.documentElement.lang=lang;document.body.className=st.dark?'dark':''},[lang,st.dark]);
+
+  const doSync=useCallback(async()=>{
+    if(!navigator.onLine){setSs('offline');return}
+    if(!GAS&&!API_URL){setSs('local');return}
+    setSs('syncing');
+    try{const pend=(await DB.all()).filter(r=>!r.synced);const local=await DB.get('st');
+      const res=await gas('sync',pend,local);
+      const m={};(await DB.all()).forEach(r=>m[r.id]=r);
+      res.records.forEach(s=>{const l=m[s.id];if(!l||s.updatedAt>=l.updatedAt)m[s.id]={...s,synced:true}});
+      const all=Object.values(m);await DB.putMany(all);setTx(all);
+      if(res.settings&&res.settings.updatedAt>(local?local.updatedAt:0)){await DB.set('st',res.settings);setStRaw(res.settings)}
+      setSs('synced');
+    }catch(e){console.error(e);setErrMsg(String(e&&e.message||e).slice(0,120));setSs('error')}
+  },[]);
+  const timer=useRef();const queueSync=()=>{clearTimeout(timer.current);timer.current=setTimeout(doSync,600)};
+
+  useEffect(()=>{(async()=>{const all=await DB.all();const s=await DB.get('st');setTx(all);if(s)setStRaw(s);setReady(true);doSync()})();
+    const on=()=>doSync(),off=()=>setSs('offline');addEventListener('online',on);addEventListener('offline',off);const iv=setInterval(doSync,60000);
+    return()=>{removeEventListener('online',on);removeEventListener('offline',off);clearInterval(iv)}},[]);
+
+  const saveTx=async recs=>{const now=Date.now();const out=recs.map(r=>({createdAt:now,...r,updatedAt:now,synced:false,deleted:false}));await DB.putMany(out);
+    setTx(p=>{const m={};p.forEach(x=>m[x.id]=x);out.forEach(x=>m[x.id]=x);return Object.values(m)});queueSync()};
+  const delTx=x=>{saveTx([{...x,deleted:true}])};
+  const setSt=async n=>{const v={...n,updatedAt:Date.now()};setStRaw(v);await DB.set('st',v);queueSync()};
+  const importTx=async(recs,s)=>{const now=Date.now();const out=recs.map(r=>({...r,updatedAt:now,synced:false}));await DB.putMany(out);setTx(p=>{const m={};p.forEach(x=>m[x.id]=x);out.forEach(x=>m[x.id]=x);return Object.values(m)});if(s)setSt(s);else queueSync()};
+
+  const alerts=useMemo(()=>{const cur=live.filter(x=>x.type==='expense'&&x.date.startsWith(month));const a=[];
+    if(st.budget>0){const p=sum(cur)/st.budget*100;if(p>=75)a.push({n:t('monthlyBudget'),p})}
+    st.cats.forEach(c=>{if(c.b>0){const p=sum(cur.filter(x=>x.cat===c.n))/c.b*100;if(p>=75)a.push({n:cn(c.n),p})}});return a},[live,st,month,lang]);
+
+  const pend=tx.filter(x=>!x.synced).length;
+  const label=ss==='syncing'?t('syncing'):ss==='offline'?t('offline'):ss==='error'?t('error')+' ('+errMsg+')':ss==='local'?t('local'):pend?pend+' '+t('pending'):t('synced');
+  if(!ready)return null;
+  const nav=[['dashboard','▦'],['transactions','☰'],['budget','◔'],['reports','▤'],['settings','⚙']];
+  const Page={dashboard:Dashboard,transactions:Transactions,budget:Budget,reports:Reports,settings:Settings}[page];
+  return <Ctx.Provider value={{t,st,setSt,tx,live,money,cn,lang,month,setMonth,saveTx,delTx,importTx,alerts,doSync}}>
+    <div className="app"><aside><h1>Spend<b>Wise</b></h1>{nav.map(([k,i])=><button key={k} className={'nav'+(page===k?' on':'')} onClick={()=>setPage(k)}><span>{i}</span>{t(k)}</button>)}
+      <div className="sync">● {label}</div></aside><main><Page/></main></div></Ctx.Provider>}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
