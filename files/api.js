@@ -4,6 +4,8 @@ exports.handler = async (event) => {
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch { return { statusCode: 400, body: '{"error":"bad json"}' }; }
   if (!['sync', 'setAutoReport'].includes(body.fn)) return { statusCode: 400, body: '{"error":"bad function"}' };
+  if (process.env.APP_PASSWORD && body.pw !== process.env.APP_PASSWORD)
+    return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: '{"error":"unauthorized"}' };
   try {
     const r = await fetch(process.env.APPS_SCRIPT_URL, {
       method: 'POST',
