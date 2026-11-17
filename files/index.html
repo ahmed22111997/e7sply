@@ -69,7 +69,7 @@ const API_URL='/.netlify/functions/api';   // Netlify proxy (keeps the key secre
 const API_KEY='';   // leave empty when using the Netlify proxy
 const GAS=typeof google!=='undefined'&&google.script&&google.script.run;
 const getPw=()=>{try{return localStorage.getItem('sw_pw')||''}catch(e){return ''}};
-const callApi=(fn,a)=>fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({fn,args:a,key:API_KEY,pw:getPw()})}).then(r=>r.json());
+const callApi=(fn,a)=>fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({fn,args:a,key:API_KEY,pw:getPw()})}).then(async r=>{const t=await r.text();try{return JSON.parse(t)}catch(e){return{error:'HTTP '+r.status+' '+(t.slice(0,80)||'empty response from function')}}});
 const gas=(fn,...a)=>GAS?new Promise((ok,no)=>GAS.withSuccessHandler(ok).withFailureHandler(no)[fn](...a)):
  callApi(fn,a).then(async r=>{
   if(r.error==='unauthorized'){const p=prompt('Password / كلمة المرور');if(p){try{localStorage.setItem('sw_pw',p)}catch(e){}r=await callApi(fn,a)}}
