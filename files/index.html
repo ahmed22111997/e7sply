@@ -68,8 +68,12 @@ return{all:()=>run('tx','readonly',s=>s.getAll()),putMany:a=>run('tx','readwrite
 const API_URL='/.netlify/functions/api';   // Netlify proxy (keeps the key secret). Use the /exec URL directly only without Netlify Functions.
 const API_KEY='';   // leave empty when using the Netlify proxy
 const GAS=typeof google!=='undefined'&&google.script&&google.script.run;
+const getPw=()=>{try{return localStorage.getItem('sw_pw')||''}catch(e){return ''}};
+const callApi=(fn,a)=>fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({fn,args:a,key:API_KEY,pw:getPw()})}).then(r=>r.json());
 const gas=(fn,...a)=>GAS?new Promise((ok,no)=>GAS.withSuccessHandler(ok).withFailureHandler(no)[fn](...a)):
- fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({fn,args:a,key:API_KEY})}).then(r=>r.json()).then(r=>{if(r.error)throw new Error(r.error);return r.ok});
+ callApi(fn,a).then(async r=>{
+  if(r.error==='unauthorized'){const p=prompt('Password / كلمة المرور');if(p){try{localStorage.setItem('sw_pw',p)}catch(e){}r=await callApi(fn,a)}}
+  if(r.error)throw new Error(r.error);return r.ok});
 
 /* ---------- helpers ---------- */
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
