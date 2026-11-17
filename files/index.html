@@ -223,7 +223,7 @@ function Settings(){const {t,st,setSt,tx,importTx,cn,doSync}=useContext(Ctx);con
 /* ---------- app shell ---------- */
 function App(){
   const [tx,setTx]=useState([]);const [st,setStRaw]=useState({lang:'en',dark:false,budget:0,cats:DEFCATS.map(n=>({n,b:0})),updatedAt:0});
-  const [page,setPage]=useState('dashboard');const [month,setMonth]=useState(today().slice(0,7));const [ss,setSs]=useState('idle');const [ready,setReady]=useState(false);
+  const [page,setPage]=useState('dashboard');const [month,setMonth]=useState(today().slice(0,7));const [ss,setSs]=useState('idle');const [errMsg,setErrMsg]=useState('');const [ready,setReady]=useState(false);
   const lang=st.lang,t=k=>I18N[lang][k]||I18N.en[k]||k;
   const money=n=>new Intl.NumberFormat(lang==='ar'?'ar-AE':'en-AE',{style:'currency',currency:'AED',maximumFractionDigits:2}).format(n||0);
   const cn=c=>lang==='ar'&&CATAR[c]||c;
@@ -241,7 +241,7 @@ function App(){
       const all=Object.values(m);await DB.putMany(all);setTx(all);
       if(res.settings&&res.settings.updatedAt>(local?local.updatedAt:0)){await DB.set('st',res.settings);setStRaw(res.settings)}
       setSs('synced');
-    }catch(e){console.error(e);setSs('error')}
+    }catch(e){console.error(e);setErrMsg(String(e&&e.message||e).slice(0,120));setSs('error')}
   },[]);
   const timer=useRef();const queueSync=()=>{clearTimeout(timer.current);timer.current=setTimeout(doSync,600)};
 
@@ -260,7 +260,7 @@ function App(){
     st.cats.forEach(c=>{if(c.b>0){const p=sum(cur.filter(x=>x.cat===c.n))/c.b*100;if(p>=75)a.push({n:cn(c.n),p})}});return a},[live,st,month,lang]);
 
   const pend=tx.filter(x=>!x.synced).length;
-  const label=ss==='syncing'?t('syncing'):ss==='offline'?t('offline'):ss==='error'?t('error'):ss==='local'?t('local'):pend?pend+' '+t('pending'):t('synced');
+  const label=ss==='syncing'?t('syncing'):ss==='offline'?t('offline'):ss==='error'?t('error')+' ('+errMsg+')':ss==='local'?t('local'):pend?pend+' '+t('pending'):t('synced');
   if(!ready)return null;
   const nav=[['dashboard','▦'],['transactions','☰'],['budget','◔'],['reports','▤'],['settings','⚙']];
   const Page={dashboard:Dashboard,transactions:Transactions,budget:Budget,reports:Reports,settings:Settings}[page];
