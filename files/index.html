@@ -53,12 +53,12 @@ aside h1,.sync{display:none}.nav{flex-direction:column;gap:2px;font-size:11px;pa
 <script type="text/babel">
 const {useState,useEffect,useRef,useMemo,useCallback,createContext,useContext}=React;
 const Ctx=createContext();
-const DEFCATS=['Groceries','Fish & Seafood','Vegetables & Fruits','Restaurants & Takeaway','Transportation','Housing','Utilities','Shopping','Healthcare','Entertainment','Other'];
-const CATAR={'Groceries':'بقالة','Fish & Seafood':'أسماك ومأكولات بحرية','Vegetables & Fruits':'خضار وفواكه','Restaurants & Takeaway':'مطاعم وطلبات خارجية','Transportation':'مواصلات','Housing':'سكن','Utilities':'فواتير وخدمات','Shopping':'تسوق','Healthcare':'صحة','Entertainment':'ترفيه','Other':'أخرى'};
-const PAY=['Cash','Card','Bank transfer','Other'];
+const DEFCATS=['Groceries','Fish & Seafood','Vegetables & Fruits','Restaurants & Takeaway','Transportation','Housing','Utilities','Shopping','Healthcare','Entertainment','Tabby Installments','Other'];
+const CATAR={'Groceries':'بقالة','Fish & Seafood':'أسماك ومأكولات بحرية','Vegetables & Fruits':'خضار وفواكه','Restaurants & Takeaway':'مطاعم وطلبات خارجية','Transportation':'مواصلات','Housing':'سكن','Utilities':'فواتير وخدمات','Shopping':'تسوق','Healthcare':'صحة','Entertainment':'ترفيه','Tabby Installments':'أقساط تابي','Other':'أخرى'};
+const PAY=['Cash','Card','Tabby','Bank transfer','Other'];
 const I18N={
-en:{dashboard:'Dashboard',transactions:'Transactions',budget:'Budget',reports:'Reports',settings:'Settings',spent:'Spent this month',monthlyBudget:'Monthly budget',remaining:'Remaining',savings:'Savings',avgDay:'Average per day',topCat:'Top category',count:'Transactions',last6:'Last 6 months',byCat:'By category',daily:'Daily spending',prev:'Previous month',cur:'This month',quick:'Add purchases',hint:'Type naturally: “rice 15, eggs 8, fish 12 AED” or “2 كيلو طماطم 10 درهم”',read:'Read entries',saveAll:'Save all',item:'Item',amount:'Amount',qty:'Qty',category:'Category',date:'Date',note:'Note',payment:'Payment',income:'Income',expense:'Expense',search:'Search name, note or category',all:'All',edit:'Edit',del:'Delete',confirmDel:'Delete this transaction?',cancel:'Cancel',save:'Save',empty:'Nothing here yet.',safeDay:'Safe to spend per day',missing:'Amount missing – enter it or remove the row',today:'Today',week:'Last 7 days',month:'This month',from:'From',to:'To',min:'Min',max:'Max',setBudget:'Set monthly budget',catBudgets:'Category budgets',used:'used',w75:'reached 75% of budget',w90:'reached 90% of budget',w100:'went over budget',csv:'Export CSV',pdf:'Print / save PDF',highDay:'Highest spending day',topItems:'Most purchased items',vsBudget:'Budget vs actual',history:'Monthly history',autoReport:'Generate monthly report automatically',language:'Language',dark:'Dark mode',addCat:'Add category',exportAll:'Export backup (JSON)',importAll:'Import backup',syncNow:'Sync now',synced:'Synced',syncing:'Syncing…',pending:'pending',offline:'Offline – saved on this device',local:'Local only (not in Apps Script)',error:'Sync failed – will retry',nothingRead:'Nothing recognised. Try “item amount”.',recurring:'Repeat monthly',tx:'transactions'},
-ar:{dashboard:'لوحة التحكم',transactions:'المعاملات',budget:'الميزانية',reports:'التقارير',settings:'الإعدادات',spent:'المصروف هذا الشهر',monthlyBudget:'الميزانية الشهرية',remaining:'المتبقي',savings:'المدخرات',avgDay:'المتوسط اليومي',topCat:'أعلى فئة',count:'عدد المعاملات',last6:'آخر 6 أشهر',byCat:'حسب الفئة',daily:'الإنفاق اليومي',prev:'الشهر السابق',cur:'هذا الشهر',quick:'إضافة مشتريات',hint:'اكتب بشكل طبيعي: «رز 15، بيض 8، سمك 12 درهم»',read:'قراءة المدخلات',saveAll:'حفظ الكل',item:'الصنف',amount:'المبلغ',qty:'الكمية',category:'الفئة',date:'التاريخ',note:'ملاحظة',payment:'طريقة الدفع',income:'دخل',expense:'مصروف',search:'ابحث بالاسم أو الملاحظة أو الفئة',all:'الكل',edit:'تعديل',del:'حذف',confirmDel:'حذف هذه المعاملة؟',cancel:'إلغاء',save:'حفظ',empty:'لا يوجد شيء بعد.',safeDay:'المبلغ الآمن للصرف يوميًا',missing:'المبلغ ناقص – أدخله أو احذف السطر',today:'اليوم',week:'آخر 7 أيام',month:'هذا الشهر',from:'من',to:'إلى',min:'الأدنى',max:'الأعلى',setBudget:'حدد الميزانية الشهرية',catBudgets:'ميزانيات الفئات',used:'مستخدم',w75:'وصلت إلى 75% من الميزانية',w90:'وصلت إلى 90% من الميزانية',w100:'تجاوزت الميزانية',csv:'تصدير CSV',pdf:'طباعة / حفظ PDF',highDay:'أعلى يوم إنفاقًا',topItems:'الأكثر شراءً',vsBudget:'الميزانية مقابل الفعلي',history:'السجل الشهري',autoReport:'إنشاء التقرير الشهري تلقائيًا',language:'اللغة',dark:'الوضع الداكن',addCat:'إضافة فئة',exportAll:'تصدير نسخة احتياطية (JSON)',importAll:'استيراد نسخة احتياطية',syncNow:'مزامنة الآن',synced:'تمت المزامنة',syncing:'جارٍ المزامنة…',pending:'معلّق',offline:'غير متصل – محفوظ على الجهاز',local:'محلي فقط (خارج Apps Script)',error:'فشلت المزامنة – ستُعاد المحاولة',nothingRead:'لم يتم التعرف على شيء. جرّب «صنف مبلغ».',recurring:'تكرار شهري',tx:'معاملة'}};
+en:{dashboard:'Dashboard',transactions:'Transactions',budget:'Budget',reports:'Reports',settings:'Settings',spent:'Spent this month',monthlyBudget:'Monthly budget',remaining:'Remaining',savings:'Savings',avgDay:'Average per day',topCat:'Top category',count:'Transactions',last6:'Last 6 months',byCat:'By category',daily:'Daily spending',prev:'Previous month',cur:'This month',quick:'Add purchases',hint:'Type naturally: “rice 15, eggs 8, fish 12 AED” or “2 كيلو طماطم 10 درهم”',read:'Read entries',saveAll:'Save all',item:'Item',amount:'Amount',qty:'Qty',category:'Category',date:'Date',note:'Note',payment:'Payment',income:'Income',expense:'Expense',search:'Search name, note or category',all:'All',edit:'Edit',del:'Delete',confirmDel:'Delete this transaction?',cancel:'Cancel',save:'Save',empty:'Nothing here yet.',safeDay:'Safe to spend per day',missing:'Amount missing – enter it or remove the row',today:'Today',week:'Last 7 days',month:'This month',from:'From',to:'To',min:'Min',max:'Max',setBudget:'Set monthly budget',catBudgets:'Category budgets',used:'used',w75:'reached 75% of budget',w90:'reached 90% of budget',w100:'went over budget',csv:'Export CSV',pdf:'Print / save PDF',highDay:'Highest spending day',topItems:'Most purchased items',vsBudget:'Budget vs actual',history:'Monthly history',autoReport:'Generate monthly report automatically',language:'Language',dark:'Dark mode',addCat:'Add category',exportAll:'Export backup (JSON)',importAll:'Import backup',syncNow:'Sync now',synced:'Synced',syncing:'Syncing…',pending:'pending',offline:'Offline – saved on this device',local:'Local only (not in Apps Script)',error:'Sync failed – will retry',nothingRead:'Nothing recognised. Try “item amount”.',recurring:'Repeat monthly',tx:'transactions',tabbyMonth:'Paid via Tabby this month'},
+ar:{dashboard:'لوحة التحكم',transactions:'المعاملات',budget:'الميزانية',reports:'التقارير',settings:'الإعدادات',spent:'المصروف هذا الشهر',monthlyBudget:'الميزانية الشهرية',remaining:'المتبقي',savings:'المدخرات',avgDay:'المتوسط اليومي',topCat:'أعلى فئة',count:'عدد المعاملات',last6:'آخر 6 أشهر',byCat:'حسب الفئة',daily:'الإنفاق اليومي',prev:'الشهر السابق',cur:'هذا الشهر',quick:'إضافة مشتريات',hint:'اكتب بشكل طبيعي: «رز 15، بيض 8، سمك 12 درهم»',read:'قراءة المدخلات',saveAll:'حفظ الكل',item:'الصنف',amount:'المبلغ',qty:'الكمية',category:'الفئة',date:'التاريخ',note:'ملاحظة',payment:'طريقة الدفع',income:'دخل',expense:'مصروف',search:'ابحث بالاسم أو الملاحظة أو الفئة',all:'الكل',edit:'تعديل',del:'حذف',confirmDel:'حذف هذه المعاملة؟',cancel:'إلغاء',save:'حفظ',empty:'لا يوجد شيء بعد.',safeDay:'المبلغ الآمن للصرف يوميًا',missing:'المبلغ ناقص – أدخله أو احذف السطر',today:'اليوم',week:'آخر 7 أيام',month:'هذا الشهر',from:'من',to:'إلى',min:'الأدنى',max:'الأعلى',setBudget:'حدد الميزانية الشهرية',catBudgets:'ميزانيات الفئات',used:'مستخدم',w75:'وصلت إلى 75% من الميزانية',w90:'وصلت إلى 90% من الميزانية',w100:'تجاوزت الميزانية',csv:'تصدير CSV',pdf:'طباعة / حفظ PDF',highDay:'أعلى يوم إنفاقًا',topItems:'الأكثر شراءً',vsBudget:'الميزانية مقابل الفعلي',history:'السجل الشهري',autoReport:'إنشاء التقرير الشهري تلقائيًا',language:'اللغة',dark:'الوضع الداكن',addCat:'إضافة فئة',exportAll:'تصدير نسخة احتياطية (JSON)',importAll:'استيراد نسخة احتياطية',syncNow:'مزامنة الآن',synced:'تمت المزامنة',syncing:'جارٍ المزامنة…',pending:'معلّق',offline:'غير متصل – محفوظ على الجهاز',local:'محلي فقط (خارج Apps Script)',error:'فشلت المزامنة – ستُعاد المحاولة',nothingRead:'لم يتم التعرف على شيء. جرّب «صنف مبلغ».',recurring:'تكرار شهري',tx:'معاملة',tabbyMonth:'المدفوع عبر تابي هذا الشهر'}};
 
 /* ---------- storage (IndexedDB) ---------- */
 const DB=(()=>{let p;const open=()=>p||(p=new Promise((res,rej)=>{const r=indexedDB.open('spendwise',1);r.onupgradeneeded=()=>{r.result.createObjectStore('tx',{keyPath:'id'});r.result.createObjectStore('kv',{keyPath:'k'})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}));
@@ -83,17 +83,18 @@ const addDays=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)};
 const shiftMonth=(m,n)=>{const [y,mo]=m.split('-').map(Number);const d=new Date(y,mo-1+n,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
 const dim=m=>{const [y,mo]=m.split('-').map(Number);return new Date(y,mo,0).getDate()};
 const sum=a=>a.reduce((s,x)=>s+x.amount,0);
+const ensureCat=s=>s.cats.some(c=>c.n==='Tabby Installments')?s:{...s,cats:[...s.cats,{n:'Tabby Installments',b:0}]};
 
 /* ---------- smart entry parser ---------- */
 const AR='٠١٢٣٤٥٦٧٨٩';
 const norm=s=>s.replace(/[٠-٩]/g,d=>AR.indexOf(d)).replace(/٫/g,'.').replace(/[،؛]/g,',');
 const CURW=/^(aed|dh|dhs|dirham|dirhams|د\.?إ|درهم|دراهم)$/i;
 const UNITW=/^(kg|kgs|g|gm|l|ltr|pcs|pc|x|كيلو|كغ|كجم|جرام|غرام|لتر|حبة|حبات|قطعة|علبة)$/i;
-const FILL=new Set(['bought','buy','paid','spent','for','and','at','on','the','a','of','today','yesterday','اشتريت','دفعت','صرفت','ب','بـ','في','اليوم','أمس','امس','و']);
+const FILL=new Set(['tabby','تابي','bought','buy','paid','spent','for','and','at','on','the','a','of','today','yesterday','اشتريت','دفعت','صرفت','ب','بـ','في','اليوم','أمس','امس','و']);
 const KEYS=[['Fish & Seafood',/fish|shrimp|salmon|tuna|prawn|سمك|روبيان|جمبري|سلمون|سالمون|هامور/i],['Vegetables & Fruits',/tomato|potato|onion|apple|banana|fruit|veg|cucumber|طماطم|بطاطس|بصل|تفاح|موز|خضار|فواكه|خيار|برتقال/i],['Groceries',/rice|riz|egg|milk|bread|sugar|flour|oil|chicken|meat|cheese|رز|أرز|ارز|بيض|حليب|خبز|سكر|دقيق|زيت|دجاج|لحم|جبن/i],['Restaurants & Takeaway',/restaurant|cafe|coffee|pizza|burger|lunch|dinner|مطعم|قهوة|كافيه|بيتزا|برجر|غداء|عشاء/i],['Transportation',/taxi|uber|careem|fuel|petrol|metro|salik|parking|bus|تاكسي|بنزين|مترو|سالك|موقف|باص/i],['Housing',/rent|إيجار|ايجار/i],['Utilities',/dewa|electric|water|internet|etisalat|phone|كهرباء|ماء|مياه|انترنت|إنترنت|ديوا|فاتورة/i],['Healthcare',/pharmacy|doctor|medicine|clinic|صيدلية|دواء|طبيب|عيادة/i],['Entertainment',/cinema|netflix|game|movie|سينما|نتفلكس|لعبة|فيلم/i],['Shopping',/clothes|shoes|shirt|bag|ملابس|حذاء|قميص|شنطة/i]];
-const guessCat=(name,cats)=>{const c=cats.find(x=>name.toLowerCase().includes(x.n.toLowerCase())&&!DEFCATS.includes(x.n));if(c)return c.n;const k=KEYS.find(([,r])=>r.test(name));return k?k[0]:'Other'};
+const guessCat=(name,cats,tabby)=>{const c=cats.find(x=>name.toLowerCase().includes(x.n.toLowerCase())&&!DEFCATS.includes(x.n));if(c)return c.n;const k=KEYS.find(([,r])=>r.test(name));return k?k[0]:(tabby?'Tabby Installments':'Other')};
 function parse(text,cats){
-  const t=norm(text);const date=/yesterday|أمس|امس/i.test(t)?addDays(-1):today();
+  const tabby=/tabby|تابي/i.test(text);const t=norm(text);const date=/yesterday|أمس|امس/i.test(t)?addDays(-1):today();
   return t.split(/[\n,;]+|\.(?!\d)|\s+and\s+|\s+و\s+/i).map(s=>s.trim()).filter(Boolean).map(seg=>{
     const tk=seg.replace(/(\d)([A-Za-z\u0600-\u06FF])/g,'$1 $2').replace(/([A-Za-z\u0600-\u06FF])(\d)/g,'$1 $2').split(/\s+/);
     const nums=tk.map((w,i)=>/^\d+(\.\d+)?$/.test(w)?i:-1).filter(i=>i>=0);
@@ -102,7 +103,7 @@ function parse(text,cats){
     let qi=nums.find(i=>i!==ai&&(i===0||UNITW.test(tk[i+1]||'')));
     const qty=qi===undefined?'':tk[qi]+(UNITW.test(tk[qi+1]||'')?' '+tk[qi+1]:'');
     const name=tk.filter((w,i)=>i!==ai&&i!==qi&&!CURW.test(w)&&!UNITW.test(w)&&!FILL.has(w.toLowerCase())&&!/^\d+(\.\d+)?$/.test(w)).join(' ').trim();
-    return{key:uid(),name:name||'—',amount:ai===undefined?'':tk[ai],qty,cat:guessCat(name,cats),date};
+    return{key:uid(),name:name||(tabby?'Tabby':'—'),amount:ai===undefined?'':tk[ai],qty,cat:guessCat(name,cats,tabby),pay:tabby?'Tabby':'Cash',date};
   }).filter(Boolean);
 }
 
@@ -130,7 +131,7 @@ function QuickAdd(){const {t,st,cn,saveTx}=useContext(Ctx);
   const read=()=>setRows(parse(text,st.cats));
   const upd=(k,key,v)=>setRows(rows.map(r=>r.key===key?{...r,[k]:v}:r));
   const ok=rows&&rows.filter(r=>+r.amount>0);const anyMissing=rows&&rows.some(r=>!(+r.amount>0));
-  const commit=()=>{saveTx(ok.map(r=>({id:uid(),type,name:r.name,amount:+r.amount,qty:r.qty,cat:r.cat,date:r.date,note:'',pay:'Cash'})));setRows(null);setText('')};
+  const commit=()=>{saveTx(ok.map(r=>({id:uid(),type,name:r.name,amount:+r.amount,qty:r.qty,cat:r.cat,date:r.date,note:'',pay:r.pay||'Cash'})));setRows(null);setText('')};
   return <div className="card" style={{marginBottom:14}}><h3>{t('quick')}</h3>
     <textarea value={text} onChange={e=>setText(e.target.value)} placeholder={t('hint')} dir="auto"/>
     <div className="row" style={{marginTop:8}}><select style={{maxWidth:150}} value={type} onChange={e=>setType(e.target.value)}><option value="expense">{t('expense')}</option><option value="income">{t('income')}</option></select><button className="btn" onClick={read} disabled={!text.trim()}>{t('read')}</button></div>
@@ -139,6 +140,7 @@ function QuickAdd(){const {t,st,cn,saveTx}=useContext(Ctx);
       <td style={{width:90}}><input type="number" placeholder={t('amount')} value={r.amount} style={!(+r.amount>0)?{borderColor:'var(--bad)'}:{}} onChange={e=>upd('amount',r.key,e.target.value)}/></td>
       <td style={{width:90}}><input value={r.qty} placeholder={t('qty')} onChange={e=>upd('qty',r.key,e.target.value)}/></td>
       <td><select value={r.cat} onChange={e=>upd('cat',r.key,e.target.value)}>{st.cats.map(c=><option key={c.n} value={c.n}>{cn(c.n)}</option>)}</select></td>
+      <td style={{width:110}}><select value={r.pay||'Cash'} onChange={e=>upd('pay',r.key,e.target.value)}>{PAY.map(p=><option key={p}>{p}</option>)}</select></td>
       <td style={{width:130}}><input type="date" value={r.date} onChange={e=>upd('date',r.key,e.target.value)}/></td>
       <td><button className="btn sec" onClick={()=>setRows(rows.filter(x=>x.key!==r.key))}>✕</button></td></tr>)}</tbody></table>
       {anyMissing&&<div className="alert w" style={{marginTop:10}}>{t('missing')}</div>}
@@ -156,7 +158,7 @@ function Dashboard(){const {t,live,st,money,month,cn,alerts}=useContext(Ctx);
   const months=Array.from({length:6},(_,i)=>shiftMonth(month,i-5));
   const K=(l,v,c)=><div className={'card kpi '+(c||'')}><small>{l}</small><b>{v}</b></div>;
   return <div><h2>{t('dashboard')}</h2><Alerts/><QuickAdd/>
-    <div className="grid kpis">{K(t('spent'),money(total),'hero')}{K(t('monthlyBudget'),st.budget?money(st.budget):'—')}{K(t('remaining'),st.budget?money(rem):'—')}{K(t('savings'),inc?money(inc-total):'—')}{K(t('avgDay'),money(total/Math.max(1,elapsed)))}{K(t('topCat'),top?cn(top[0]):'—')}{K(t('count'),cur.length)}{isNow&&st.budget>0&&K(t('safeDay'),money(Math.max(0,rem)/Math.max(1,left)))}</div>
+    <div className="grid kpis">{K(t('spent'),money(total),'hero')}{K(t('monthlyBudget'),st.budget?money(st.budget):'—')}{K(t('remaining'),st.budget?money(rem):'—')}{K(t('savings'),inc?money(inc-total):'—')}{K(t('avgDay'),money(total/Math.max(1,elapsed)))}{K(t('topCat'),top?cn(top[0]):'—')}{K(t('count'),cur.length)}{sum(cur.filter(x=>x.pay==='Tabby'))>0&&K(t('tabbyMonth'),money(sum(cur.filter(x=>x.pay==='Tabby'))))}{isNow&&st.budget>0&&K(t('safeDay'),money(Math.max(0,rem)/Math.max(1,left)))}</div>
     {st.budget>0&&<div className="card" style={{marginBottom:14}}><div className="row" style={{justifyContent:'space-between'}}><span>{t('monthlyBudget')}</span><b style={{flex:0}}>{Math.round(total/st.budget*100)}%</b></div><Bar pct={total/st.budget*100}/></div>}
     <div className="grid two"><div className="card"><h3>{t('last6')}</h3><ChartBox type="bar" data={{labels:months,datasets:[{data:months.map(m=>sum(inM(ex,m))),backgroundColor:'#E0982B',borderRadius:8}]}}/></div>
     <div className="card"><h3>{t('byCat')}</h3>{top?<ChartBox type="doughnut" data={{labels:Object.keys(byCat).map(cn),datasets:[{data:Object.values(byCat),backgroundColor:['#0E1B3D','#E0982B','#1E9E73','#4F6BED','#D64550','#8E6BBF','#2BA3B8','#C9A66B','#6B7385','#E58BA6','#96C36A','#9AA7C7']}]}}/>:<div className="empty">{t('empty')}</div>}</div></div>
@@ -165,16 +167,16 @@ function Dashboard(){const {t,live,st,money,month,cn,alerts}=useContext(Ctx);
 function Alerts(){const {t,alerts}=useContext(Ctx);return <div>{alerts.map((a,i)=><div key={i} className={'alert '+(a.p>=100?'b':'w')}>{a.n} — {t(a.p>=100?'w100':a.p>=90?'w90':'w75')}</div>)}</div>}
 
 function Transactions(){const {t,live,money,cn,saveTx,delTx}=useContext(Ctx);
-  const [f,setF]=useState({q:'',cat:'',from:'',to:'',min:'',max:''});const [ed,setEd]=useState(null);const s=k=>e=>setF({...f,[k]:e.target.value});
-  const list=live.filter(x=>{const q=f.q.toLowerCase();return(!q||(x.name+' '+x.note+' '+x.cat+' '+cn(x.cat)).toLowerCase().includes(q))&&(!f.cat||x.cat===f.cat)&&(!f.from||x.date>=f.from)&&(!f.to||x.date<=f.to)&&(!f.min||x.amount>=+f.min)&&(!f.max||x.amount<=+f.max)}).sort((a,b)=>b.date.localeCompare(a.date)||b.updatedAt-a.updatedAt);
+  const [f,setF]=useState({q:'',cat:'',pay:'',from:'',to:'',min:'',max:''});const [ed,setEd]=useState(null);const s=k=>e=>setF({...f,[k]:e.target.value});
+  const list=live.filter(x=>{const q=f.q.toLowerCase();return(!q||(x.name+' '+x.note+' '+x.cat+' '+cn(x.cat)).toLowerCase().includes(q))&&(!f.cat||x.cat===f.cat)&&(!f.pay||x.pay===f.pay)&&(!f.from||x.date>=f.from)&&(!f.to||x.date<=f.to)&&(!f.min||x.amount>=+f.min)&&(!f.max||x.amount<=+f.max)}).sort((a,b)=>b.date.localeCompare(a.date)||b.updatedAt-a.updatedAt);
   const e=live.filter(x=>x.type==='expense'),T=sum(e.filter(x=>x.date===today())),W=sum(e.filter(x=>x.date>=addDays(-6))),M=sum(e.filter(x=>x.date.startsWith(today().slice(0,7))));
   const {st}=useContext(Ctx);
   return <div><h2>{t('transactions')}</h2>
     <div className="grid kpis">{[[t('today'),T],[t('week'),W],[t('month'),M]].map(([l,v])=><div key={l} className="card kpi"><small>{l}</small><b>{money(v)}</b></div>)}</div>
-    <div className="card" style={{marginBottom:14}}><div className="row"><input placeholder={t('search')} value={f.q} onChange={s('q')} dir="auto" style={{flex:2}}/><select value={f.cat} onChange={s('cat')}><option value="">{t('all')}</option>{st.cats.map(c=><option key={c.n} value={c.n}>{cn(c.n)}</option>)}</select></div>
+    <div className="card" style={{marginBottom:14}}><div className="row"><input placeholder={t('search')} value={f.q} onChange={s('q')} dir="auto" style={{flex:2}}/><select value={f.cat} onChange={s('cat')}><option value="">{t('all')}</option>{st.cats.map(c=><option key={c.n} value={c.n}>{cn(c.n)}</option>)}</select><select value={f.pay} onChange={s('pay')}><option value="">{t('payment')}</option>{PAY.map(p=><option key={p}>{p}</option>)}</select></div>
     <div className="row" style={{marginTop:8}}><input type="date" title={t('from')} value={f.from} onChange={s('from')}/><input type="date" title={t('to')} value={f.to} onChange={s('to')}/><input type="number" placeholder={t('min')} value={f.min} onChange={s('min')}/><input type="number" placeholder={t('max')} value={f.max} onChange={s('max')}/></div></div>
     <div className="card" style={{overflowX:'auto'}}>{list.length?<table><thead><tr><th>{t('date')}</th><th>{t('item')}</th><th>{t('category')}</th><th>{t('amount')}</th><th/></tr></thead><tbody>{list.map(x=><tr key={x.id}>
-      <td>{x.date}</td><td>{x.name}{x.qty&&<span className="mut"> · {x.qty}</span>}{x.note&&<div className="mut" style={{fontSize:12}}>{x.note}</div>}</td><td><span className="tag">{cn(x.cat)}</span></td>
+      <td>{x.date}</td><td>{x.name}{x.pay==='Tabby'&&<span className="tag" style={{marginInlineStart:6}}>Tabby</span>}{x.qty&&<span className="mut"> · {x.qty}</span>}{x.note&&<div className="mut" style={{fontSize:12}}>{x.note}</div>}</td><td><span className="tag">{cn(x.cat)}</span></td>
       <td style={{color:x.type==='income'?'var(--ok)':'inherit',fontWeight:600}}>{x.type==='income'?'+':''}{money(x.amount)}</td>
       <td style={{whiteSpace:'nowrap'}}><button className="btn sec" onClick={()=>setEd(x)}>{t('edit')}</button> <button className="btn sec" onClick={()=>confirm(t('confirmDel'))&&delTx(x)}>✕</button></td></tr>)}</tbody></table>:<div className="empty">{t('empty')}</div>}</div>
     {ed&&<Modal onClose={()=>setEd(null)}><TxForm tx={ed} onCancel={()=>setEd(null)} onSave={r=>{saveTx([r]);setEd(null)}}/></Modal>}</div>}
@@ -239,13 +241,13 @@ function App(){
       const m={};(await DB.all()).forEach(r=>m[r.id]=r);
       res.records.forEach(s=>{const l=m[s.id];if(!l||s.updatedAt>=l.updatedAt)m[s.id]={...s,synced:true}});
       const all=Object.values(m);await DB.putMany(all);setTx(all);
-      if(res.settings&&res.settings.updatedAt>(local?local.updatedAt:0)){await DB.set('st',res.settings);setStRaw(res.settings)}
+      if(res.settings&&res.settings.updatedAt>(local?local.updatedAt:0)){await DB.set('st',res.settings);setStRaw(ensureCat(res.settings))}
       setSs('synced');
     }catch(e){console.error(e);setErrMsg(String(e&&e.message||e).slice(0,120));setSs('error')}
   },[]);
   const timer=useRef();const queueSync=()=>{clearTimeout(timer.current);timer.current=setTimeout(doSync,600)};
 
-  useEffect(()=>{(async()=>{const all=await DB.all();const s=await DB.get('st');setTx(all);if(s)setStRaw(s);setReady(true);doSync()})();
+  useEffect(()=>{(async()=>{const all=await DB.all();const s=await DB.get('st');setTx(all);if(s)setStRaw(ensureCat(s));setReady(true);doSync()})();
     const on=()=>doSync(),off=()=>setSs('offline');addEventListener('online',on);addEventListener('offline',off);const iv=setInterval(doSync,60000);
     return()=>{removeEventListener('online',on);removeEventListener('offline',off);clearInterval(iv)}},[]);
 
