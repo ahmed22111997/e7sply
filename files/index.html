@@ -167,7 +167,7 @@ function Dashboard(){const {t,live,st,money,month,cn,alerts}=useContext(Ctx);
 function Alerts(){const {t,alerts}=useContext(Ctx);return <div>{alerts.map((a,i)=><div key={i} className={'alert '+(a.p>=100?'b':'w')}>{a.n} — {t(a.p>=100?'w100':a.p>=90?'w90':'w75')}</div>)}</div>}
 
 function Transactions(){const {t,live,money,cn,saveTx,delTx}=useContext(Ctx);
-  const [f,setF]=useState({q:'',cat:'',pay:'',from:'',to:'',min:'',max:''});const [ed,setEd]=useState(null);const s=k=>e=>setF({...f,[k]:e.target.value});
+  const [f,setF]=useState({q:'',cat:'',pay:'',from:'',to:'',min:'',max:''});const [ed,setEd]=useState(null);const [dl,setDl]=useState(null);const s=k=>e=>setF({...f,[k]:e.target.value});
   const list=live.filter(x=>{const q=f.q.toLowerCase();return(!q||(x.name+' '+x.note+' '+x.cat+' '+cn(x.cat)).toLowerCase().includes(q))&&(!f.cat||x.cat===f.cat)&&(!f.pay||x.pay===f.pay)&&(!f.from||x.date>=f.from)&&(!f.to||x.date<=f.to)&&(!f.min||x.amount>=+f.min)&&(!f.max||x.amount<=+f.max)}).sort((a,b)=>b.date.localeCompare(a.date)||b.updatedAt-a.updatedAt);
   const e=live.filter(x=>x.type==='expense'),T=sum(e.filter(x=>x.date===today())),W=sum(e.filter(x=>x.date>=addDays(-6))),M=sum(e.filter(x=>x.date.startsWith(today().slice(0,7))));
   const {st}=useContext(Ctx);
@@ -178,7 +178,8 @@ function Transactions(){const {t,live,money,cn,saveTx,delTx}=useContext(Ctx);
     <div className="card" style={{overflowX:'auto'}}>{list.length?<table><thead><tr><th>{t('date')}</th><th>{t('item')}</th><th>{t('category')}</th><th>{t('amount')}</th><th/></tr></thead><tbody>{list.map(x=><tr key={x.id}>
       <td>{x.date}</td><td>{x.name}{x.pay==='Tabby'&&<span className="tag" style={{marginInlineStart:6}}>Tabby</span>}{x.qty&&<span className="mut"> · {x.qty}</span>}{x.note&&<div className="mut" style={{fontSize:12}}>{x.note}</div>}</td><td><span className="tag">{cn(x.cat)}</span></td>
       <td style={{color:x.type==='income'?'var(--ok)':'inherit',fontWeight:600}}>{x.type==='income'?'+':''}{money(x.amount)}</td>
-      <td style={{whiteSpace:'nowrap'}}><button className="btn sec" onClick={()=>setEd(x)}>{t('edit')}</button> <button className="btn sec" onClick={()=>confirm(t('confirmDel'))&&delTx(x)}>✕</button></td></tr>)}</tbody></table>:<div className="empty">{t('empty')}</div>}</div>
+      <td style={{whiteSpace:'nowrap'}}><button className="btn sec" onClick={()=>setEd(x)}>{t('edit')}</button> <button className="btn sec" onClick={()=>setDl(x)}>✕</button></td></tr>)}</tbody></table>:<div className="empty">{t('empty')}</div>}</div>
+    {dl&&<Modal onClose={()=>setDl(null)}><h3>{t('confirmDel')}</h3><p className="mut">{dl.name} · {money(dl.amount)}</p><div className="row" style={{justifyContent:'flex-end'}}><button className="btn sec" onClick={()=>setDl(null)}>{t('cancel')}</button><button className="btn red" onClick={()=>{delTx(dl);setDl(null)}}>{t('del')}</button></div></Modal>}
     {ed&&<Modal onClose={()=>setEd(null)}><TxForm tx={ed} onCancel={()=>setEd(null)} onSave={r=>{saveTx([r]);setEd(null)}}/></Modal>}</div>}
 
 function Budget(){const {t,live,st,setSt,money,month,cn}=useContext(Ctx);
@@ -251,7 +252,7 @@ function App(){
     const on=()=>doSync(),off=()=>setSs('offline');addEventListener('online',on);addEventListener('offline',off);const iv=setInterval(doSync,60000);
     return()=>{removeEventListener('online',on);removeEventListener('offline',off);clearInterval(iv)}},[]);
 
-  const saveTx=async recs=>{const now=Date.now();const out=recs.map(r=>({createdAt:now,...r,updatedAt:now,synced:false,deleted:false}));await DB.putMany(out);
+  const saveTx=async recs=>{const now=Date.now();const out=recs.map(r=>({createdAt:now,...r,updatedAt:now,synced:false,deleted:!!r.deleted}));await DB.putMany(out);
     setTx(p=>{const m={};p.forEach(x=>m[x.id]=x);out.forEach(x=>m[x.id]=x);return Object.values(m)});queueSync()};
   const delTx=x=>{saveTx([{...x,deleted:true}])};
   const setSt=async n=>{const v={...n,updatedAt:Date.now()};setStRaw(v);await DB.set('st',v);queueSync()};
